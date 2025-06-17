@@ -1,36 +1,63 @@
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("search");
+  const resultsContainer = document.getElementById("results");
 
-function createCard(data) {
-  const card = document.createElement('div');
-  card.className = 'faculty-card';
+  function createFacultyCard(faculty) {
+    const card = document.createElement("div");
+    card.className = "faculty-card";
 
-  const img = document.createElement('img');
-  img.src = data.image_url || 'https://via.placeholder.com/100x120';
-  img.alt = data.name;
+    const img = document.createElement("img");
+    img.src = faculty.image_url || "https://via.placeholder.com/100";
+    img.alt = faculty.name;
 
-  const details = document.createElement('div');
-  details.className = 'details';
-  details.innerHTML = `
-    <h2>${data.name}</h2>
-    <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
-    <p><strong>Phone:</strong> ${data.phone || 'N/A'}</p>
-    <p><strong>Cabin:</strong> ${data.cabin || 'N/A'}</p>
-    <p><strong>Specialization:</strong> ${data.specialization || 'N/A'}</p>
-    <p><strong>Teaching Rating:</strong> ${data.teaching_rating} (${data.num_teaching_ratings} ratings)</p>
-    <p><strong>Attendance Rating:</strong> ${data.attendance_rating} (${data.num_attendance_ratings} ratings)</p>
-    <p><strong>Correction Rating:</strong> ${data.correction_rating} (${data.num_correction_ratings} ratings)</p>
-  `;
+    const name = document.createElement("h2");
+    name.textContent = faculty.name;
 
-  card.appendChild(img);
-  card.appendChild(details);
-  return card;
-}
+    const email = document.createElement("p");
+    email.textContent = faculty.email || "Email not available";
 
-document.getElementById('search').addEventListener('input', function () {
-  const input = this.value.toLowerCase();
-  const results = document.getElementById('results');
-  results.innerHTML = '';
+    const ratings = document.createElement("p");
+    ratings.textContent = `📊 Ratings - T: ${faculty.teaching_rating?.toFixed(2) || "N/A"} / C: ${faculty.correction_rating?.toFixed(2) || "N/A"} / A: ${faculty.attendance_rating?.toFixed(2) || "N/A"}`;
 
-  Object.values(facultyData)
-    .filter(f => f.name && f.name.toLowerCase().includes(input))
-    .forEach(f => results.appendChild(createCard(f)));
+    const ratedBy = document.createElement("p");
+    ratedBy.textContent = `👥 Rated by - T: ${faculty.num_teaching_ratings || 0}, C: ${faculty.num_correction_ratings || 0}, A: ${faculty.num_attendance_ratings || 0}`;
+
+    card.appendChild(img);
+    card.appendChild(name);
+    card.appendChild(email);
+    card.appendChild(ratings);
+    card.appendChild(ratedBy);
+
+    return card;
+  }
+
+  function renderResults(query) {
+    resultsContainer.innerHTML = "";
+    const searchTerm = query.toLowerCase();
+
+    const matched = Object.values(facultyData).filter(faculty =>
+      faculty.name?.toLowerCase().includes(searchTerm)
+    );
+
+    if (matched.length === 0) {
+      resultsContainer.innerHTML = "<p style='color:#888;'>No matching faculty found.</p>";
+      return;
+    }
+
+    matched.forEach(faculty => {
+      const card = createFacultyCard(faculty);
+      card.style.opacity = 0;
+      resultsContainer.appendChild(card);
+      setTimeout(() => {
+        card.style.transition = "opacity 0.6s ease";
+        card.style.opacity = 1;
+      }, 10);
+    });
+  }
+
+  searchInput.addEventListener("input", e => {
+    renderResults(e.target.value);
+  });
+
+  renderResults(""); // Initial load
 });
